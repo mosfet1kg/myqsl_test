@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <!-- Latest compiled and minified CSS -->
+    <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+
+<div class="container bs-docs-container">
+    <div class="row">
+        <div class="col-md-9">
+            <h1 class="page-header">Book Store</h1>
+            <!-- Large modal -->
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Registration</button>
+
+            <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Registration</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form class="form-horizontal">
+                                <div class="form-group">
+                                    <label for="name" class="col-sm-2 control-label">Book Name</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" name="name" id="name">
+                                    </div>
+                                </div>
+                                <!-- -->
+                                <div class="form-group">
+                                    <label for="description" class="col-sm-2 control-label">Description</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" name="description" id="description">
+                                    </div>
+                                </div>
+                                <!-- -->
+                                <div class="form-group">
+                                    <label for="price" class="col-sm-2 control-label">Price</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" name="price" id="price">
+                                    </div>
+                                </div>
+                                <!-- -->
+                                <div class="form-group">
+                                    <label for="rate" class="col-sm-2 control-label">Rate</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" name="price" id="rate">
+                                    </div>
+                                </div>
+                                <!-- -->
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal" id="modal_close">Close</button>
+                            <button type="button" class="btn btn-primary" id="modal_save">Save changes</button>
+                        </div>
+                    </div> <!-- modal-content -->
+                </div>
+            </div>
+            <!-- -->
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Book Name</th>
+                        <th>Description</th>
+                        <th>Price</th>
+                        <th>Rate</th>
+                        <th>Others</th>
+                    </tr>
+                </thead>
+                <tbody id="contents">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function refresh_list(){
+        $.get('/get_list', function(data){
+            $("#contents").empty();
+
+            var results = JSON.parse(data.results);
+            var idx = 1;
+
+            results.forEach(function(item){
+                var str = '<tr>'
+                +'<td>' + idx++ + '</td>'
+                +'<td>' + item.name + '</td>'
+                +'<td>' + item.description + '</td>'
+                +'<td>' + item.price + '</td>'
+                +'<td>' + item.rate + '</td>'
+                +'<td><button type="button" class="btn btn-primary btn-xs" value="'+item.id+
+                        '" onclick="delete_item(this)">Remove</button></td>'
+                +'</tr>';
+
+                $('#contents').append(str);
+            });
+        });
+    }
+
+    function delete_item(val){
+        $.ajax({
+            url: '/delete_item',
+            type: 'DELETE',
+            data: {id: $(val).attr('value')},
+            success: function(result) {
+                // Do something with the result
+                if( result.status == 'ok'){
+                    refresh_list();
+                }
+            }
+        });
+
+    }
+
+    refresh_list();
+
+    $('#modal_save').on('click', function(){
+        $.post('/save_book',{data: JSON.stringify($('form').serializeArray())}, function(data){
+            console.log(data);
+            if(data.status == 'ok'){
+
+                $('#modal_close').trigger('click');
+                refresh_list();
+            }
+        })
+    });
+</script>
+
+</body>
+</html>
